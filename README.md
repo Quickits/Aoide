@@ -1,2 +1,2 @@
 # Aoide
-Aoide is a Audio Recorder for Android.
+Aoide is an audio recorder for Android.
