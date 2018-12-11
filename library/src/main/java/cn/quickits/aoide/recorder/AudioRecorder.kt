@@ -3,19 +3,18 @@ package cn.quickits.aoide.recorder
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import cn.quickits.aoide.util.GlobalVars.isRecording
 
 
-class AudioRecorder {
+class AudioRecorder : IRecorder {
 
     var audioRecord: AudioRecord? = null
 
     var onRecordStateChangedListener: OnRecordStateChangedListener? = null
 
-    var isRecording = false
-
     private var minBufferSize = 0
 
-    fun startAudioRecord() {
+    override fun startAudioRecord() {
         startAudioRecord(
             DEFAULT_SOURCE,
             DEFAULT_SAMPLE_RATE,
@@ -24,7 +23,7 @@ class AudioRecorder {
         )
     }
 
-    fun startAudioRecord(
+    private fun startAudioRecord(
         audioSource: Int,
         sampleRateInHz: Int,
         channelConfig: Int,
@@ -57,7 +56,7 @@ class AudioRecorder {
         isRecording = true
     }
 
-    fun stopAudioRecord() {
+    override fun stopAudioRecord() {
         if (!isRecording) return
 
         val audioRecord = this.audioRecord ?: return
@@ -71,7 +70,7 @@ class AudioRecorder {
         isRecording = false
     }
 
-    fun readBuffer(): ByteArray? {
+    override fun readBuffer(): ByteArray? {
         val audioRecord = this.audioRecord ?: return null
 
         val buffer = ByteArray(minBufferSize)
@@ -81,12 +80,10 @@ class AudioRecorder {
             when (rect) {
                 AudioRecord.ERROR_INVALID_OPERATION -> {
                     println("recording: ERROR_INVALID_OPERATION")
-                    return null
                 }
 
                 AudioRecord.ERROR_BAD_VALUE -> {
                     println("recording: ERROR_BAD_VALUE")
-                    return null
                 }
 
                 else -> {
@@ -94,19 +91,20 @@ class AudioRecorder {
                     return buffer
                 }
             }
-        } else {
-            return null
         }
-    }
 
+        return null
+    }
 
     interface OnRecordStateChangedListener {
         fun onStartRecord(audioRecord: AudioRecord)
+
+        fun onStopRecord()
     }
 
     companion object {
         private const val DEFAULT_SOURCE = MediaRecorder.AudioSource.MIC
-        private const val DEFAULT_SAMPLE_RATE = 44100
+        const val DEFAULT_SAMPLE_RATE = 44100
         private const val DEFAULT_CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_STEREO
         private const val DEFAULT_AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT
     }
