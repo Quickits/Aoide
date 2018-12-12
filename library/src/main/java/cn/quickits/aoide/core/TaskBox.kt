@@ -4,16 +4,27 @@ class TaskBox private constructor() {
 
     private val box = arrayListOf<Task>()
 
-    fun get(filePath: String): Task {
-        for (task in box) {
-            if (task.targetFile == filePath) return task
+    fun create(taskSpec: TaskSpec): Task? {
+        val current = getCurrentTask()
+
+        if (current?.isPaused == true) {
+            return current
+        } else if (current != null) {
+            return null
         }
 
-        val task = Task(filePath)
+        val task = Task(taskSpec)
 
         box.add(task)
 
         return task
+    }
+
+    fun getCurrentTask(): Task? {
+        for (task in box) {
+            if (!task.isFinished) return task
+        }
+        return null
     }
 
     companion object {

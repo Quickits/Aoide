@@ -1,8 +1,7 @@
 package cn.quickits.aoide.encoder.wav
 
-import android.content.ContentValues.TAG
-import android.util.Log
 import cn.quickits.aoide.encoder.IAudioFileEncoder
+import cn.quickits.aoide.util.L
 import java.io.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -105,57 +104,57 @@ class WAVEncoder : IAudioFileEncoder {
         try {
             header.mChunkID = "" + dataInputStream.readByte().toChar() + dataInputStream.readByte().toChar() +
                     dataInputStream.readByte().toChar() + dataInputStream.readByte().toChar()
-            Log.d(TAG, "Read file chunkID:" + header.mChunkID)
+            L.logi("Read file chunkID:" + header.mChunkID)
 
             dataInputStream.read(intValue)
             header.mChunkSize = byteArrayToInt(intValue)
-            Log.d(TAG, "Read file chunkSize:" + header.mChunkSize)
+            L.logi("Read file chunkSize:" + header.mChunkSize)
 
             header.mFormat = "" + dataInputStream.readByte().toChar() + dataInputStream.readByte().toChar() +
                     dataInputStream.readByte().toChar() + dataInputStream.readByte().toChar()
-            Log.d(TAG, "Read file format:" + header.mFormat)
+            L.logi("Read file format:" + header.mFormat)
 
             header.mSubChunk1ID = "" + dataInputStream.readByte().toChar() + dataInputStream.readByte().toChar() +
                     dataInputStream.readByte().toChar() + dataInputStream.readByte().toChar()
-            Log.d(TAG, "Read fmt chunkID:" + header.mSubChunk1ID)
+            L.logi("Read fmt chunkID:" + header.mSubChunk1ID)
 
             dataInputStream.read(intValue)
             header.mSubChunk1Size = byteArrayToInt(intValue)
-            Log.d(TAG, "Read fmt chunkSize:" + header.mSubChunk1Size)
+            L.logi("Read fmt chunkSize:" + header.mSubChunk1Size)
 
             dataInputStream.read(shortValue)
             header.mAudioFormat = byteArrayToShort(shortValue)
-            Log.d(TAG, "Read audioFormat:" + header.mAudioFormat)
+            L.logi("Read audioFormat:" + header.mAudioFormat)
 
             dataInputStream.read(shortValue)
             header.mNumChannel = byteArrayToShort(shortValue)
-            Log.d(TAG, "Read channel number:" + header.mNumChannel)
+            L.logi("Read channel number:" + header.mNumChannel)
 
             dataInputStream.read(intValue)
             header.mSampleRate = byteArrayToInt(intValue)
-            Log.d(TAG, "Read samplerate:" + header.mSampleRate)
+            L.logi("Read samplerate:" + header.mSampleRate)
 
             dataInputStream.read(intValue)
             header.mByteRate = byteArrayToInt(intValue)
-            Log.d(TAG, "Read byterate:" + header.mByteRate)
+            L.logi("Read byterate:" + header.mByteRate)
 
             dataInputStream.read(shortValue)
             header.mBlockAlign = byteArrayToShort(shortValue)
-            Log.d(TAG, "Read blockalign:" + header.mBlockAlign)
+            L.logi("Read blockalign:" + header.mBlockAlign)
 
             dataInputStream.read(shortValue)
             header.mBitsPerSample = byteArrayToShort(shortValue)
-            Log.d(TAG, "Read bitspersample:" + header.mBitsPerSample)
+            L.logi("Read bitspersample:" + header.mBitsPerSample)
 
             header.mSubChunk2ID = "" + dataInputStream.readByte().toChar() + dataInputStream.readByte().toChar() +
                     dataInputStream.readByte().toChar() + dataInputStream.readByte().toChar()
-            Log.d(TAG, "Read data chunkID:" + header.mSubChunk2ID)
+            L.logi("Read data chunkID:" + header.mSubChunk2ID)
 
             dataInputStream.read(intValue)
             header.mSubChunk2Size = byteArrayToInt(intValue)
-            Log.d(TAG, "Read data chunkSize:" + header.mSubChunk2Size)
+            L.logi("Read data chunkSize:" + header.mSubChunk2Size)
 
-            Log.d(TAG, "Read wav file success !")
+            L.logi("Read wav file success !")
         } catch (e: Exception) {
             e.printStackTrace()
             return false

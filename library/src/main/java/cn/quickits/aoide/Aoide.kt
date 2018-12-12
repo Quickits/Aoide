@@ -1,32 +1,21 @@
 package cn.quickits.aoide
 
+import android.content.Context
 import cn.quickits.aoide.core.Status
 import cn.quickits.aoide.core.TaskBox
+import cn.quickits.aoide.core.TaskCreator
 import io.reactivex.Flowable
 import io.reactivex.Maybe
 
 object Aoide {
 
-    fun get(filePath: String, autoStart: Boolean = true): Flowable<Status> {
-        val flowable = TaskBox.getInstance().get(filePath).getFlowable()
+    fun with(context: Context): TaskCreator = TaskCreator(context)
 
-        if (autoStart) {
-            start(filePath).subscribe()
-        }
+    fun start(): Maybe<Any>? = TaskBox.getInstance().getCurrentTask()?.start()
 
-        return flowable
-    }
+    fun stop(): Maybe<Any>? = TaskBox.getInstance().getCurrentTask()?.stop()
 
-    fun start(filePath: String): Maybe<Any> {
-        return TaskBox.getInstance().get(filePath).start()
-    }
+    fun pause(): Maybe<Any>? = TaskBox.getInstance().getCurrentTask()?.pause()
 
-    fun stop(filePath: String): Maybe<Any> {
-        return TaskBox.getInstance().get(filePath).stop()
-    }
-
-    fun pause(filePath: String): Maybe<Any> {
-        return TaskBox.getInstance().get(filePath).pause()
-    }
-
+    fun status(): Flowable<Status>? = TaskBox.getInstance().getCurrentTask()?.getFlowable()
 }

@@ -1,16 +1,17 @@
 package cn.quickits.aoide.core
 
 import android.media.AudioRecord
-import cn.quickits.aoide.encoder.aac.AACEncoder
 import cn.quickits.aoide.recorder.AudioRecorder
 import cn.quickits.aoide.util.GlobalVars
 import cn.quickits.aoide.util.GlobalVars.isRecording
+import cn.quickits.aoide.util.L
 import io.reactivex.Maybe
 import io.reactivex.disposables.Disposable
 import io.reactivex.processors.BehaviorProcessor
 import io.reactivex.schedulers.Schedulers
+import java.io.File
 
-class Task(var targetFile: String) {
+class Task(taskSpec: TaskSpec) {
 
     private val audioRecorder: AudioRecorder = AudioRecorder()
 
@@ -18,9 +19,14 @@ class Task(var targetFile: String) {
 
     private var disposable: Disposable? = null
 
-    private var isFinished: Boolean = false
+    internal var isFinished: Boolean = false
 
-    private var wavEncoder = AACEncoder()
+    internal var isPaused: Boolean = false
+
+    private var fileEncoder = taskSpec.fileEncoder
+
+    private var targetFile: String =
+        taskSpec.cachePath + File.separator + System.currentTimeMillis() + fileEncoder.fileExtensionName()
 
     init {
         audioRecorder.onRecordStateChangedListener = object : AudioRecorder.OnRecordStateChangedListener {
@@ -33,6 +39,8 @@ class Task(var targetFile: String) {
                 disposable = null
             }
         }
+
+        emitStatus(Prepared())
     }
 
     fun start(): Maybe<Any> {
@@ -60,8 +68,12 @@ class Task(var targetFile: String) {
 
     private fun doStartRecord() {
         if (!GlobalVars.isRecording && !isFinished) {
-            wavEncoder.openFile(targetFile, AudioRecorder.DEFAULT_SAMPLE_RATE, 2, 16)
+            isPaused = false
+            isFinished = false
+            fileEncoder.openFile(targetFile, AudioRecorder.DEFAULT_SAMPLE_RATE, 1, 16)
             audioRecorder.startAudioRecord()
+
+            emitStatus(Recording())
         }
     }
 
@@ -74,8 +86,15 @@ class Task(var targetFile: String) {
 
     private fun doPauseRecord() {
         if (GlobalVars.isRecording) {
+            isPaused = true
             audioRecorder.stopAudioRecord()
+
+            emitStatus(Paused())
         }
+    }
+
+    private fun emitStatus(status: Status) {
+        statusFlowable.onNext(status)
     }
 
     private fun processorData(audioRecorder: AudioRecorder) {
@@ -88,7 +107,7 @@ class Task(var targetFile: String) {
                 val buffer = audioRecorder.readBuffer()
 
                 if (buffer?.size ?: 0 > 0) {
-                    wavEncoder.writeData(buffer!!, 0, buffer.size)
+                    fileEncoder.writeData(buffer!!, 0, buffer.size)
                 }
 
                 it
@@ -100,35 +119,17 @@ class Task(var targetFile: String) {
                     subject.onComplete()
                 }
             }
-            .doOnError {
-                println("doOnError")
-            }
-            .doOnComplete {
-                wavEncoder.closeFile()
-                println("doOnComplete")
-            }
-            .doOnCancel {
-                println("doOnCancel")
-            }
-            .doFinally {
-                println("doFinally")
-            }
+            .doOnError { L.loge("processorData onError", it) }
+            .doOnComplete { fileEncoder.closeFile() }
+            .doOnCancel { L.logi("processorData onCancel") }
+            .doFinally { L.logi("doFinally") }
             .subscribeOn(Schedulers.io())
             .subscribe({
-
+            }, { e ->
+                emitStatus(Error(e))
             }, {
-                it.printStackTrace()
-            }, {
-                println("onComplete")
+                if (isFinished) emitStatus(Completed(targetFile))
             })
-    }
-
-    override fun hashCode(): Int {
-        return targetFile.hashCode()
-    }
-
-    override fun equals(other: Any?): Boolean {
-        return super.equals(other)
     }
 
 }

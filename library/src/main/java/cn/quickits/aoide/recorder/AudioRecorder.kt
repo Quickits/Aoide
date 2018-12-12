@@ -4,6 +4,7 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import cn.quickits.aoide.util.GlobalVars.isRecording
+import cn.quickits.aoide.util.L
 
 
 class AudioRecorder : IRecorder {
@@ -79,15 +80,15 @@ class AudioRecorder : IRecorder {
 
             when (rect) {
                 AudioRecord.ERROR_INVALID_OPERATION -> {
-                    println("recording: ERROR_INVALID_OPERATION")
+                    L.logi("Recording <= ERROR_INVALID_OPERATION")
                 }
 
                 AudioRecord.ERROR_BAD_VALUE -> {
-                    println("recording: ERROR_BAD_VALUE")
+                    L.logi("Recording <= ERROR_BAD_VALUE")
                 }
 
                 else -> {
-                    println("recording: $rect")
+                    L.logi("Recording <= $rect")
                     return buffer
                 }
             }
@@ -105,7 +106,7 @@ class AudioRecorder : IRecorder {
     companion object {
         private const val DEFAULT_SOURCE = MediaRecorder.AudioSource.MIC
         const val DEFAULT_SAMPLE_RATE = 44100
-        private const val DEFAULT_CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_STEREO
+        private const val DEFAULT_CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
         private const val DEFAULT_AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT
     }
 }

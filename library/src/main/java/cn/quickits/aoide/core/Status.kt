@@ -2,8 +2,12 @@ package cn.quickits.aoide.core
 
 open class Status
 
+class Prepared : Status()
+
 class Recording : Status()
 
-class Successed : Status()
+class Paused : Status()
 
-class Error: Status()
+class Completed(val filePath: String) : Status()
+
+class Error(val throwable: Throwable) : Status()

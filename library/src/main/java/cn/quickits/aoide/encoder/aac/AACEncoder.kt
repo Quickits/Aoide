@@ -5,6 +5,7 @@ import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.os.Build
 import cn.quickits.aoide.encoder.IAudioFileEncoder
+import cn.quickits.aoide.util.L
 import java.io.File
 import java.io.RandomAccessFile
 
@@ -14,6 +15,9 @@ class AACEncoder : IAudioFileEncoder {
     private var bufferInfo: MediaCodec.BufferInfo = MediaCodec.BufferInfo()
 
     private var randomAccessFile: RandomAccessFile? = null
+
+    private val kSampleRates = intArrayOf(8000, 11025, 22050, 44100, 48000)
+    private val kBitRates = intArrayOf(64000, 96000, 128000)
 
     override fun fileExtensionName(): String = ".aac"
 
@@ -28,7 +32,7 @@ class AACEncoder : IAudioFileEncoder {
 
         val mediaFormat = MediaFormat.createAudioFormat(MIME_TYPE_AUDIO_AAC, sampleRateInHz, channels)
         mediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
-        mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 96000)
+        mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, kBitRates[1])
         mediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 1024 * 1024)
 
         mediaCodec?.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
@@ -48,7 +52,9 @@ class AACEncoder : IAudioFileEncoder {
         val mediaCodec = this.mediaCodec ?: return false
 
         val inputBufferIndex = mediaCodec.dequeueInputBuffer(-1)
-        println("ACC => input: $inputBufferIndex")
+
+        L.logi("AAC => input: $inputBufferIndex")
+
         if (inputBufferIndex >= 0) {
             val inputBuffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 mediaCodec.getInputBuffer(inputBufferIndex)
@@ -64,7 +70,8 @@ class AACEncoder : IAudioFileEncoder {
 
         var outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0)
         while (outputBufferIndex >= 0) {
-            println("ACC => output: $outputBufferIndex")
+
+            L.logi("AAC => output: $outputBufferIndex")
 
             val packetSize = bufferInfo.size + 7
 
