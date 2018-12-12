@@ -4,23 +4,25 @@ import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.os.Build
-import cn.quickits.aoide.encoder.IEncoder
+import cn.quickits.aoide.encoder.IAudioFileEncoder
 import java.io.File
-import java.io.FileOutputStream
+import java.io.RandomAccessFile
 
-class AACEncoder : IEncoder {
+class AACEncoder : IAudioFileEncoder {
 
     private var mediaCodec: MediaCodec? = null
     private var bufferInfo: MediaCodec.BufferInfo = MediaCodec.BufferInfo()
 
-    private var fileOutputStream: FileOutputStream? = null
+    private var randomAccessFile: RandomAccessFile? = null
+
+    override fun fileExtensionName(): String = ".aac"
 
     override fun openFile(filePath: String, sampleRateInHz: Int, channels: Int, bitsPerSample: Int): Boolean {
         val file = File(filePath)
         if (!file.exists()) {
             file.createNewFile()
         }
-        fileOutputStream = FileOutputStream(file)
+        randomAccessFile = RandomAccessFile(file, "rw")
 
         mediaCodec = MediaCodec.createEncoderByType(MIME_TYPE_AUDIO_AAC)
 
@@ -38,8 +40,7 @@ class AACEncoder : IEncoder {
     override fun closeFile(): Boolean {
         mediaCodec?.stop()
         mediaCodec?.release()
-        fileOutputStream?.flush()
-        fileOutputStream?.close()
+        randomAccessFile?.close()
         return true
     }
 
@@ -77,32 +78,18 @@ class AACEncoder : IEncoder {
             outputBuffer?.limit(bufferInfo.offset + bufferInfo.size)
 
             val byteArray = ByteArray(packetSize)
-            addADTStoPacket(byteArray, packetSize)
+            AACFileHeader.writeADTSHeader(byteArray, packetSize)
             outputBuffer?.get(byteArray, 7, bufferInfo.size)
             outputBuffer?.position(bufferInfo.offset)
 
-            fileOutputStream?.write(byteArray)
+            randomAccessFile?.seek(randomAccessFile?.length() ?: 0)
+            randomAccessFile?.write(byteArray)
 
             mediaCodec.releaseOutputBuffer(outputBufferIndex, false)
             outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0)
         }
 
-        fileOutputStream?.flush()
-
         return true
-    }
-
-    private fun addADTStoPacket(packet: ByteArray, packetLen: Int) {
-        val profile = 2  //AAC LC
-        val freqIdx = 4  //44.1KHz
-        val chanCfg = 2  //CPE
-        packet[0] = 0xFF.toByte()
-        packet[1] = 0xF9.toByte()
-        packet[2] = ((profile - 1 shl 6) + (freqIdx shl 2) + (chanCfg shr 2)).toByte()
-        packet[3] = ((chanCfg and 3 shl 6) + (packetLen shr 11)).toByte()
-        packet[4] = (packetLen and 0x7FF shr 3).toByte()
-        packet[5] = ((packetLen and 7 shl 5) + 0x1F).toByte()
-        packet[6] = 0xFC.toByte()
     }
 
     companion object {

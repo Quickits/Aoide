@@ -2,18 +2,20 @@ package cn.quickits.aoide.encoder.wav
 
 import android.content.ContentValues.TAG
 import android.util.Log
-import cn.quickits.aoide.encoder.IEncoder
+import cn.quickits.aoide.encoder.IAudioFileEncoder
 import java.io.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class WAVEncoder : IEncoder {
+class WAVEncoder : IAudioFileEncoder {
 
     private var mFilepath: String? = null
     private var mDataSize = 0
     private var wavFileHeader: WAVFileHeader? = null
 
     private var randomAccessFile: RandomAccessFile? = null
+
+    override fun fileExtensionName(): String = ".wav"
 
     override fun openFile(filePath: String, sampleRateInHz: Int, channels: Int, bitsPerSample: Int): Boolean {
         mFilepath = filePath
