@@ -1,7 +1,7 @@
 package cn.quickits.aoide.core
 
 import android.media.AudioRecord
-import cn.quickits.aoide.encoder.wav.WavEncoder
+import cn.quickits.aoide.encoder.aac.AACEncoder
 import cn.quickits.aoide.recorder.AudioRecorder
 import cn.quickits.aoide.util.GlobalVars
 import cn.quickits.aoide.util.GlobalVars.isRecording
@@ -20,7 +20,7 @@ class Task(var targetFile: String) {
 
     private var isFinished: Boolean = false
 
-    private var wavEncoder = WavEncoder()
+    private var wavEncoder = AACEncoder()
 
     init {
         audioRecorder.onRecordStateChangedListener = object : AudioRecorder.OnRecordStateChangedListener {
