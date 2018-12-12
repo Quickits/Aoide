@@ -1,6 +1,11 @@
 package cn.quickits.aoide.encoder.wav
 
-class WavFileHeader {
+/**
+ *
+ * see more http://soundfile.sapp.org/doc/WaveFormat/
+ *
+ */
+class WAVFileHeader {
 
     var mChunkID = "RIFF"
     var mChunkSize = 0

@@ -7,11 +7,11 @@ import java.io.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class WavEncoder : IEncoder {
+class WAVEncoder : IEncoder {
 
     private var mFilepath: String? = null
     private var mDataSize = 0
-    private var wavFileHeader: WavFileHeader? = null
+    private var wavFileHeader: WAVFileHeader? = null
 
     private var randomAccessFile: RandomAccessFile? = null
 
@@ -64,7 +64,7 @@ class WavEncoder : IEncoder {
     private fun writeHeader(sampleRateInHz: Int, channels: Int, bitsPerSample: Int): Boolean {
         val dataOutputStream = DataOutputStream(FileOutputStream(mFilepath))
 
-        val header = WavFileHeader(sampleRateInHz, channels, bitsPerSample)
+        val header = WAVFileHeader(sampleRateInHz, channels, bitsPerSample)
 
         try {
             dataOutputStream.writeBytes(header.mChunkID)
@@ -95,7 +95,7 @@ class WavEncoder : IEncoder {
     private fun readHeader(): Boolean {
         val dataInputStream = DataInputStream(FileInputStream(mFilepath))
 
-        val header = WavFileHeader()
+        val header = WAVFileHeader()
 
         val intValue = ByteArray(4)
         val shortValue = ByteArray(2)
@@ -170,9 +170,9 @@ class WavEncoder : IEncoder {
         val wavFile = randomAccessFile ?: return false
 
         try {
-            wavFile.seek(WavFileHeader.WAV_CHUNK_SIZE_OFFSET.toLong())
-            wavFile.write(intToByteArray(mDataSize + WavFileHeader.WAV_CHUNK_SIZE_EXCLUDE_DATA), 0, 4)
-            wavFile.seek(WavFileHeader.WAV_SUB_CHUNK_SIZE2_OFFSET.toLong())
+            wavFile.seek(WAVFileHeader.WAV_CHUNK_SIZE_OFFSET.toLong())
+            wavFile.write(intToByteArray(mDataSize + WAVFileHeader.WAV_CHUNK_SIZE_EXCLUDE_DATA), 0, 4)
+            wavFile.seek(WAVFileHeader.WAV_SUB_CHUNK_SIZE2_OFFSET.toLong())
             wavFile.write(intToByteArray(mDataSize), 0, 4)
             wavFile.close()
         } catch (e: Exception) {
