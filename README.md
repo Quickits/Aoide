@@ -5,7 +5,7 @@
 ## Features
 
 - Support pause recording
-- Multiple audio formats (WAV, AAC-ADTS)
+- Multiple audio formats (MP3, AAC-ADTS, WAV)
 - API Flow Based on RxJava
 
 ## Usage
@@ -16,10 +16,10 @@
 
 If you are targeting Android 6.0+, you need to handle runtime permission request before next step.
 
-### 1. Create recorder task and Listening state
+### 1. Create mp3 recorder task and Listening state
 
 ```kotlin
-Aoide.with(this).fileEncoder(TaskCreator.TYPE_FILE_ENCODER_AAC)
+Aoide.with(this).mp3()
     .create()
     .subscribe { status ->
         when (status) {
@@ -36,14 +36,22 @@ Aoide.with(this).fileEncoder(TaskCreator.TYPE_FILE_ENCODER_AAC)
             }
 
             is Completed -> 
-                println(status.filePath)
+                println("Completed: " + status.filePath)
             }
 
             is Error -> {
-                println(status.message)
+                println("Error")
+                status.throwable.printStackTrace()
             }
         }
     }
+```
+
+or other audio format 
+
+```
+Aoide.with(this).aac()
+Aoide.with(this).wav()
 ```
 
 ### 2. Start recording
