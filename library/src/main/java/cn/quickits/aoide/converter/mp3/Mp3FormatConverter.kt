@@ -1,11 +1,9 @@
 package cn.quickits.aoide.converter.mp3
 
-import cn.quickits.aoide.encoder.AoideSoftEncoder
 import cn.quickits.aoide.converter.AudioFormatConverter
+import cn.quickits.aoide.encoder.AoideSoftEncoder
 import cn.quickits.aoide.recorder.AudioRecorder
 import cn.quickits.aoide.recorder.Recorder
-import java.io.File
-import java.io.RandomAccessFile
 
 class Mp3FormatConverter(sampleRateInHz: Int, channels: Int, bitsPerSample: Int) : AudioFormatConverter(
     sampleRateInHz,
@@ -26,11 +24,16 @@ class Mp3FormatConverter(sampleRateInHz: Int, channels: Int, bitsPerSample: Int)
 
     override fun close(): Boolean {
         super.close()
-        val encodedSize = AoideSoftEncoder.mp3EncodeFlush(mp3Buffer)
 
-        if (encodedSize > 0) {
-            randomAccessFile?.seek(randomAccessFile?.length() ?: 0)
-            randomAccessFile?.write(mp3Buffer, 0, encodedSize)
+        val mp3Buffer = this.mp3Buffer
+
+        if (mp3Buffer != null) {
+            val encodedSize = AoideSoftEncoder.mp3EncodeFlush(mp3Buffer)
+
+            if (encodedSize > 0) {
+                randomAccessFile?.seek(randomAccessFile?.length() ?: 0)
+                randomAccessFile?.write(mp3Buffer, 0, encodedSize)
+            }
         }
 
         randomAccessFile?.close()

@@ -22,23 +22,22 @@ abstract class AudioFormatConverter(
         this.filePath = filePath
 
         val file = File(filePath)
-
         if (!file.parentFile.exists()) {
             file.parentFile.mkdirs()
         } else if (file.exists()) {
             file.delete()
         }
-
         file.createNewFile()
 
         randomAccessFile = RandomAccessFile(file, "rw")
 
         isOpen = true
-
         return false
     }
 
     open fun close(): Boolean {
+        if (!isOpen) throw RuntimeException("Converter is already closed.")
+
         isOpen = false
         return true
     }
