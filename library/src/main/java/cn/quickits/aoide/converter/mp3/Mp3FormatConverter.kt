@@ -13,19 +13,12 @@ class Mp3FormatConverter(sampleRateInHz: Int, channels: Int, bitsPerSample: Int)
     bitsPerSample
 ) {
 
-    private var randomAccessFile: RandomAccessFile? = null
-
     private var mp3Buffer: ByteArray? = null
 
     override fun fileExtensionName(): String = ".mp3"
 
     override fun open(filePath: String): Boolean {
         super.open(filePath)
-        val file = File(filePath)
-        if (!file.exists()) {
-            file.createNewFile()
-        }
-        randomAccessFile = RandomAccessFile(file, "rw")
 
         AoideSoftEncoder.mp3EncodeInit(sampleRateInHz, channels, sampleRateInHz, 32, 7)
         return true

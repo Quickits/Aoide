@@ -22,8 +22,6 @@ class AACFormatConverter(sampleRateInHz: Int, channels: Int, bitsPerSample: Int)
 
     private var bufferInfo: MediaCodec.BufferInfo = MediaCodec.BufferInfo()
 
-    private var randomAccessFile: RandomAccessFile? = null
-
     private val kSampleRates = intArrayOf(8000, 11025, 22050, 44100, 48000)
 
     private val kBitRates = intArrayOf(64000, 96000, 128000)
@@ -32,12 +30,6 @@ class AACFormatConverter(sampleRateInHz: Int, channels: Int, bitsPerSample: Int)
 
     override fun open(filePath: String): Boolean {
         super.open(filePath)
-
-        val file = File(filePath)
-        if (!file.exists()) {
-            file.createNewFile()
-        }
-        randomAccessFile = RandomAccessFile(file, "rw")
 
         mediaCodec = MediaCodec.createEncoderByType(MIME_TYPE_AUDIO_AAC)
 
