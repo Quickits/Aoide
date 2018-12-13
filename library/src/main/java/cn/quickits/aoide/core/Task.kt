@@ -1,9 +1,9 @@
 package cn.quickits.aoide.core
 
-import android.media.AudioRecord
 import cn.quickits.aoide.recorder.AudioRecorder
+import cn.quickits.aoide.recorder.Recorder
+import cn.quickits.aoide.recorder.OnRecordStateChangedListener
 import cn.quickits.aoide.util.GlobalVars
-import cn.quickits.aoide.util.GlobalVars.isRecording
 import cn.quickits.aoide.util.L
 import io.reactivex.Maybe
 import io.reactivex.disposables.Disposable
@@ -11,34 +11,34 @@ import io.reactivex.processors.BehaviorProcessor
 import io.reactivex.schedulers.Schedulers
 import java.io.File
 
+
 class Task(taskSpec: TaskSpec) {
 
-    private val audioRecorder: AudioRecorder = AudioRecorder()
+    private val recorder: Recorder = AudioRecorder()
 
     private val statusFlowable = BehaviorProcessor.create<Status>().toSerialized()
 
     private var disposable: Disposable? = null
 
+    private var converter = taskSpec.converter
+
+    private var targetFile: String =
+        taskSpec.cachePath + File.separator + System.currentTimeMillis() + converter.fileExtensionName()
+
     internal var isFinished: Boolean = false
 
     internal var isPaused: Boolean = false
 
-    private var fileEncoder = taskSpec.fileEncoder
-
-    private var targetFile: String =
-        taskSpec.cachePath + File.separator + System.currentTimeMillis() + fileEncoder.fileExtensionName()
-
     init {
-        audioRecorder.onRecordStateChangedListener = object : AudioRecorder.OnRecordStateChangedListener {
-            override fun onStartRecord(audioRecord: AudioRecord) {
-                processorData(audioRecorder)
+        recorder.setOnRecordStateChangedListener(object : OnRecordStateChangedListener {
+            override fun onStartRecord() {
+                processorData(recorder)
             }
 
             override fun onStopRecord() {
-                if (disposable?.isDisposed == false) disposable?.dispose()
-                disposable = null
+
             }
-        }
+        })
 
         emitStatus(Prepared())
     }
@@ -70,8 +70,10 @@ class Task(taskSpec: TaskSpec) {
         if (!GlobalVars.isRecording && !isFinished) {
             isPaused = false
             isFinished = false
-            fileEncoder.openFile(targetFile, AudioRecorder.DEFAULT_SAMPLE_RATE, 1, 16)
-            audioRecorder.startAudioRecord()
+
+            if (!converter.isOpen) converter.open(targetFile)
+
+            recorder.startAudioRecord()
 
             emitStatus(Recording())
         }
@@ -80,14 +82,14 @@ class Task(taskSpec: TaskSpec) {
     private fun doStopRecord() {
         if (GlobalVars.isRecording) {
             isFinished = true
-            audioRecorder.stopAudioRecord()
+            recorder.stopAudioRecord()
         }
     }
 
     private fun doPauseRecord() {
         if (GlobalVars.isRecording) {
             isPaused = true
-            audioRecorder.stopAudioRecord()
+            recorder.stopAudioRecord()
 
             emitStatus(Paused())
         }
@@ -97,31 +99,17 @@ class Task(taskSpec: TaskSpec) {
         statusFlowable.onNext(status)
     }
 
-    private fun processorData(audioRecorder: AudioRecorder) {
+    private fun processorData(recorder: Recorder) {
         if (disposable != null && disposable?.isDisposed == false) return
 
-        val subject = BehaviorProcessor.createDefault(audioRecorder)
+        val processor = BehaviorProcessor.createDefault(recorder)
 
-        disposable = subject
-            .map {
-                val buffer = audioRecorder.readBuffer()
-
-                if (buffer?.size ?: 0 > 0) {
-                    fileEncoder.writeData(buffer!!, 0, buffer.size)
-                }
-
-                it
-            }
-            .doOnNext {
-                if (isRecording) {
-                    subject.onNext(it)
-                } else {
-                    subject.onComplete()
-                }
-            }
-            .doOnError { L.loge("processorData onError", it) }
-            .doOnComplete { fileEncoder.closeFile() }
+        disposable = processor
+            .map { converter(it) }
+            .doOnNext { isLoopConverter(processor, it) }
+            .doOnComplete { closeConverter() }
             .doOnCancel { L.logi("processorData onCancel") }
+            .doOnError { L.loge("processorData onError", it) }
             .doFinally { L.logi("doFinally") }
             .subscribeOn(Schedulers.io())
             .subscribe({
@@ -130,6 +118,31 @@ class Task(taskSpec: TaskSpec) {
             }, {
                 if (isFinished) emitStatus(Completed(targetFile))
             })
+    }
+
+    private fun converter(audioRecorder: Recorder): Recorder {
+        converter.convert(audioRecorder)
+        return audioRecorder
+    }
+
+    private fun closeConverter() {
+        if (isFinished) {
+            converter.close()
+            L.logi("closeConverter by stop")
+        } else if (isPaused) {
+            L.logi("closeConverter by pause")
+        }
+    }
+
+    private fun isLoopConverter(processor: BehaviorProcessor<Recorder>, audioRecorder: Recorder) {
+        val isRecording = GlobalVars.isRecording
+        L.logi("isLoopConverter: $isRecording")
+
+        if (isRecording) {
+            processor.onNext(audioRecorder)
+        } else {
+            processor.onComplete()
+        }
     }
 
 }

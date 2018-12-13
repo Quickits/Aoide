@@ -1,17 +1,18 @@
 package cn.quickits.aoide.core
 
 import android.content.Context
-import cn.quickits.aoide.encoder.IAudioFileEncoder
-import cn.quickits.aoide.encoder.wav.WAVEncoder
+import cn.quickits.aoide.converter.AudioFormatConverter
+import cn.quickits.aoide.converter.wav.WAVFormatConverter
+
 
 class TaskSpec {
 
     internal var cachePath: String = ""
 
-    internal var fileEncoder: IAudioFileEncoder = WAVEncoder()
+    internal var converter: AudioFormatConverter = WAVFormatConverter.create()
 
     private fun reset(context: Context) {
-        fileEncoder = WAVEncoder()
+        converter = WAVFormatConverter.create()
         cachePath = context.externalCacheDir?.absolutePath ?: context.cacheDir.absolutePath
     }
 

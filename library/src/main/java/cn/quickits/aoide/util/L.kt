@@ -8,15 +8,15 @@ object L {
 
     var isDebug = false
 
-    fun logi(msg: String) {
+    internal fun logi(msg: String) {
         if (isDebug) Log.i(TAG, msg)
     }
 
-    fun loge(message: String, throwable: Throwable? = null) {
+    internal fun loge(message: String, throwable: Throwable? = null) {
         if (isDebug) Log.e(TAG, message, throwable)
     }
 
-    fun logd(message: String) {
+    internal fun logd(message: String) {
         if (isDebug) Log.d(TAG, message)
     }
 

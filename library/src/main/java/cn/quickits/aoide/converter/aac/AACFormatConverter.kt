@@ -1,27 +1,38 @@
-package cn.quickits.aoide.encoder.aac
+package cn.quickits.aoide.converter.aac
 
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.os.Build
-import cn.quickits.aoide.encoder.IAudioFileEncoder
+import cn.quickits.aoide.converter.AudioFormatConverter
+import cn.quickits.aoide.recorder.AudioRecorder
+import cn.quickits.aoide.recorder.Recorder
 import cn.quickits.aoide.util.L
 import java.io.File
 import java.io.RandomAccessFile
 
-class AACEncoder : IAudioFileEncoder {
+@Suppress("DEPRECATION")
+class AACFormatConverter(sampleRateInHz: Int, channels: Int, bitsPerSample: Int) : AudioFormatConverter(
+    sampleRateInHz,
+    channels,
+    bitsPerSample
+) {
 
     private var mediaCodec: MediaCodec? = null
+
     private var bufferInfo: MediaCodec.BufferInfo = MediaCodec.BufferInfo()
 
     private var randomAccessFile: RandomAccessFile? = null
 
     private val kSampleRates = intArrayOf(8000, 11025, 22050, 44100, 48000)
+
     private val kBitRates = intArrayOf(64000, 96000, 128000)
 
     override fun fileExtensionName(): String = ".aac"
 
-    override fun openFile(filePath: String, sampleRateInHz: Int, channels: Int, bitsPerSample: Int): Boolean {
+    override fun open(filePath: String): Boolean {
+        super.open(filePath)
+
         val file = File(filePath)
         if (!file.exists()) {
             file.createNewFile()
@@ -41,14 +52,22 @@ class AACEncoder : IAudioFileEncoder {
         return true
     }
 
-    override fun closeFile(): Boolean {
+    override fun close(): Boolean {
+        super.close()
         mediaCodec?.stop()
         mediaCodec?.release()
         randomAccessFile?.close()
         return true
     }
 
-    override fun writeData(buffer: ByteArray, offset: Int, count: Int): Boolean {
+    override fun convert(recorder: Recorder) {
+        val pcmData = recorder.readBuffer() ?: return
+        if (pcmData.buffer?.size ?: 0 > 0) {
+            writeData(pcmData.buffer!!, 0, pcmData.count)
+        }
+    }
+
+    private fun writeData(buffer: ByteArray, offset: Int, count: Int): Boolean {
         val mediaCodec = this.mediaCodec ?: return false
 
         val inputBufferIndex = mediaCodec.dequeueInputBuffer(-1)
@@ -85,7 +104,7 @@ class AACEncoder : IAudioFileEncoder {
             outputBuffer?.limit(bufferInfo.offset + bufferInfo.size)
 
             val byteArray = ByteArray(packetSize)
-            AACFileHeader.writeADTSHeader(byteArray, packetSize)
+            AACHeader.writeADTSHeader(byteArray, packetSize)
             outputBuffer?.get(byteArray, 7, bufferInfo.size)
             outputBuffer?.position(bufferInfo.offset)
 
@@ -101,6 +120,7 @@ class AACEncoder : IAudioFileEncoder {
 
     companion object {
         private const val MIME_TYPE_AUDIO_AAC = "audio/mp4a-latm"
+        fun create() = AACFormatConverter(AudioRecorder.DEFAULT_SAMPLE_RATE, 1, 16)
     }
 
 }

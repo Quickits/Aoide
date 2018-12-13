@@ -1,6 +1,6 @@
-package cn.quickits.aoide.encoder.aac
+package cn.quickits.aoide.converter.aac
 
-object AACFileHeader {
+object AACHeader {
 
     fun writeADTSHeader(packet: ByteArray, packetLen: Int) {
         val profile = 2  //AAC LC

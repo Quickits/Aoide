@@ -7,13 +7,13 @@ import cn.quickits.aoide.util.GlobalVars.isRecording
 import cn.quickits.aoide.util.L
 
 
-class AudioRecorder : IRecorder {
+class AudioRecorder : Recorder {
 
-    var audioRecord: AudioRecord? = null
-
-    var onRecordStateChangedListener: OnRecordStateChangedListener? = null
+    private var listener: OnRecordStateChangedListener? = null
 
     private var minBufferSize = 0
+
+    private var audioRecord: AudioRecord? = null
 
     override fun startAudioRecord() {
         startAudioRecord(
@@ -24,17 +24,10 @@ class AudioRecorder : IRecorder {
         )
     }
 
-    private fun startAudioRecord(
-        audioSource: Int,
-        sampleRateInHz: Int,
-        channelConfig: Int,
-        audioFormat: Int
-    ) {
+    private fun startAudioRecord(audioSource: Int, sampleRateInHz: Int, channelConfig: Int, audioFormat: Int) {
         if (isRecording) return
 
-        val bufferSize = AudioRecord.getMinBufferSize(
-            sampleRateInHz, channelConfig, audioFormat
-        )
+        val bufferSize = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat)
 
         if (bufferSize == AudioRecord.ERROR_BAD_VALUE) {
             return
@@ -52,9 +45,9 @@ class AudioRecorder : IRecorder {
 
         audioRecord.startRecording()
 
-        onRecordStateChangedListener?.onStartRecord(audioRecord)
-
         isRecording = true
+
+        listener?.onStartRecord()
     }
 
     override fun stopAudioRecord() {
@@ -69,9 +62,11 @@ class AudioRecorder : IRecorder {
         audioRecord.release()
 
         isRecording = false
+
+        listener?.onStopRecord()
     }
 
-    override fun readBuffer(): ByteArray? {
+    override fun readBuffer(): PCMData? {
         val audioRecord = this.audioRecord ?: return null
 
         val buffer = ByteArray(minBufferSize)
@@ -89,7 +84,7 @@ class AudioRecorder : IRecorder {
 
                 else -> {
                     L.logi("Recording <= $rect")
-                    return buffer
+                    return PCMData(buffer = buffer, count = rect)
                 }
             }
         }
@@ -97,10 +92,34 @@ class AudioRecorder : IRecorder {
         return null
     }
 
-    interface OnRecordStateChangedListener {
-        fun onStartRecord(audioRecord: AudioRecord)
+    override fun readShortBuffer(): PCMData? {
+        val audioRecord = this.audioRecord ?: return null
 
-        fun onStopRecord()
+        val buffer = ShortArray(minBufferSize)
+        if (audioRecord.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
+            val rect = audioRecord.read(buffer, 0, minBufferSize)
+
+            when (rect) {
+                AudioRecord.ERROR_INVALID_OPERATION -> {
+                    L.logi("Recording <= ERROR_INVALID_OPERATION")
+                }
+
+                AudioRecord.ERROR_BAD_VALUE -> {
+                    L.logi("Recording <= ERROR_BAD_VALUE")
+                }
+
+                else -> {
+                    L.logi("Recording <= $rect")
+                    return PCMData(shortBuffer = buffer, count = rect)
+                }
+            }
+        }
+
+        return null
+    }
+
+    override fun setOnRecordStateChangedListener(onRecordStateChangedListener: OnRecordStateChangedListener) {
+        listener = onRecordStateChangedListener
     }
 
     companion object {

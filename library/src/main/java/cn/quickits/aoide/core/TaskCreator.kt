@@ -1,23 +1,16 @@
 package cn.quickits.aoide.core
 
 import android.content.Context
+import cn.quickits.aoide.converter.AudioFormatConverter
 import cn.quickits.aoide.util.AHRTException
-import cn.quickits.aoide.encoder.aac.AACEncoder
-import cn.quickits.aoide.encoder.wav.WAVEncoder
 import io.reactivex.Flowable
-import java.lang.IllegalArgumentException
 
-class TaskCreator(context: Context) {
+class TaskCreator(context: Context, encoder: AudioFormatConverter) {
 
     private val taskSpec = TaskSpec.cleanInstance(context)
 
-    fun fileEncoder(encoderType: String): TaskCreator {
-        taskSpec.fileEncoder = when (encoderType) {
-            TYPE_FILE_ENCODER_AAC -> AACEncoder()
-            TYPE_FILE_ENCODER_WAV -> WAVEncoder()
-            else -> throw IllegalArgumentException("encoder type not find")
-        }
-        return this
+    init {
+        taskSpec.converter = encoder
     }
 
     fun create(): Flowable<Status> {
@@ -25,8 +18,4 @@ class TaskCreator(context: Context) {
         return task.getFlowable()
     }
 
-    companion object {
-        const val TYPE_FILE_ENCODER_AAC = "type_file_encoder_aac"
-        const val TYPE_FILE_ENCODER_WAV = "type_file_encoder_wav"
-    }
 }

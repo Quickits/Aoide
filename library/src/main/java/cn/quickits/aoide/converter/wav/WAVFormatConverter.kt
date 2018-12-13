@@ -1,23 +1,29 @@
-package cn.quickits.aoide.encoder.wav
+package cn.quickits.aoide.converter.wav
 
-import cn.quickits.aoide.encoder.IAudioFileEncoder
+import cn.quickits.aoide.converter.AudioFormatConverter
+import cn.quickits.aoide.recorder.AudioRecorder
+import cn.quickits.aoide.recorder.Recorder
 import cn.quickits.aoide.util.L
 import java.io.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class WAVEncoder : IAudioFileEncoder {
+class WAVFormatConverter(sampleRateInHz: Int, channels: Int, bitsPerSample: Int) : AudioFormatConverter(
+    sampleRateInHz,
+    channels,
+    bitsPerSample
+) {
 
-    private var mFilepath: String? = null
-    private var mDataSize = 0
-    private var wavFileHeader: WAVFileHeader? = null
+    private var dataSize = 0
+
+    private var wavHeader: WAVHeader? = null
 
     private var randomAccessFile: RandomAccessFile? = null
 
     override fun fileExtensionName(): String = ".wav"
 
-    override fun openFile(filePath: String, sampleRateInHz: Int, channels: Int, bitsPerSample: Int): Boolean {
-        mFilepath = filePath
+    override fun open(filePath: String): Boolean {
+        super.open(filePath)
 
         val file = File(filePath)
 
@@ -28,14 +34,16 @@ class WAVEncoder : IAudioFileEncoder {
             writeHeader(sampleRateInHz, channels, bitsPerSample)
         }
 
-        mDataSize = wavFileHeader!!.mSubChunk2Size
+        dataSize = wavHeader!!.mSubChunk2Size
 
-        randomAccessFile = RandomAccessFile(mFilepath, "rw")
+        randomAccessFile = RandomAccessFile(file, "rw")
 
         return true
     }
 
-    override fun closeFile(): Boolean {
+    override fun close(): Boolean {
+        super.close()
+
         var ret = true
         if (randomAccessFile != null) {
             ret = writeDataSize()
@@ -45,7 +53,14 @@ class WAVEncoder : IAudioFileEncoder {
         return ret
     }
 
-    override fun writeData(buffer: ByteArray, offset: Int, count: Int): Boolean {
+    override fun convert(recorder: Recorder) {
+        val pcmData = recorder.readBuffer() ?: return
+        if (pcmData.buffer?.size ?: 0 > 0) {
+            writeData(pcmData.buffer!!, 0, pcmData.count)
+        }
+    }
+
+    private fun writeData(buffer: ByteArray, offset: Int, count: Int): Boolean {
         if (randomAccessFile == null) {
             return false
         }
@@ -53,7 +68,7 @@ class WAVEncoder : IAudioFileEncoder {
         try {
             randomAccessFile!!.seek(randomAccessFile!!.length())
             randomAccessFile!!.write(buffer, offset, count)
-            mDataSize += count
+            dataSize += count
         } catch (e: Exception) {
             e.printStackTrace()
             return false
@@ -63,9 +78,9 @@ class WAVEncoder : IAudioFileEncoder {
     }
 
     private fun writeHeader(sampleRateInHz: Int, channels: Int, bitsPerSample: Int): Boolean {
-        val dataOutputStream = DataOutputStream(FileOutputStream(mFilepath))
+        val dataOutputStream = DataOutputStream(FileOutputStream(filePath))
 
-        val header = WAVFileHeader(sampleRateInHz, channels, bitsPerSample)
+        val header = WAVHeader(sampleRateInHz, channels, bitsPerSample)
 
         try {
             dataOutputStream.writeBytes(header.mChunkID)
@@ -88,15 +103,15 @@ class WAVEncoder : IAudioFileEncoder {
             dataOutputStream.close()
         }
 
-        wavFileHeader = header
+        wavHeader = header
 
         return true
     }
 
     private fun readHeader(): Boolean {
-        val dataInputStream = DataInputStream(FileInputStream(mFilepath))
+        val dataInputStream = DataInputStream(FileInputStream(filePath))
 
-        val header = WAVFileHeader()
+        val header = WAVHeader()
 
         val intValue = ByteArray(4)
         val shortValue = ByteArray(2)
@@ -162,7 +177,7 @@ class WAVEncoder : IAudioFileEncoder {
             dataInputStream.close()
         }
 
-        wavFileHeader = header
+        wavHeader = header
 
         return true
     }
@@ -171,10 +186,10 @@ class WAVEncoder : IAudioFileEncoder {
         val wavFile = randomAccessFile ?: return false
 
         try {
-            wavFile.seek(WAVFileHeader.WAV_CHUNK_SIZE_OFFSET.toLong())
-            wavFile.write(intToByteArray(mDataSize + WAVFileHeader.WAV_CHUNK_SIZE_EXCLUDE_DATA), 0, 4)
-            wavFile.seek(WAVFileHeader.WAV_SUB_CHUNK_SIZE2_OFFSET.toLong())
-            wavFile.write(intToByteArray(mDataSize), 0, 4)
+            wavFile.seek(WAVHeader.WAV_CHUNK_SIZE_OFFSET.toLong())
+            wavFile.write(intToByteArray(dataSize + WAVHeader.WAV_CHUNK_SIZE_EXCLUDE_DATA), 0, 4)
+            wavFile.seek(WAVHeader.WAV_SUB_CHUNK_SIZE2_OFFSET.toLong())
+            wavFile.write(intToByteArray(dataSize), 0, 4)
             wavFile.close()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -198,4 +213,9 @@ class WAVEncoder : IAudioFileEncoder {
     private fun byteArrayToInt(b: ByteArray): Int {
         return ByteBuffer.wrap(b).order(ByteOrder.LITTLE_ENDIAN).int
     }
+
+    companion object {
+        fun create() = WAVFormatConverter(AudioRecorder.DEFAULT_SAMPLE_RATE, 1, 16)
+    }
+
 }
