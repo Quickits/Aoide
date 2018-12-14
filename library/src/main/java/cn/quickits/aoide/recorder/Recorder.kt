@@ -6,6 +6,8 @@ interface Recorder {
 
     fun stopAudioRecord()
 
+    fun isRecording(): Boolean
+
     fun readBuffer(): PCMData?
 
     fun readShortBuffer(): PCMData?

@@ -3,7 +3,6 @@ package cn.quickits.aoide.recorder
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
-import cn.quickits.aoide.util.GlobalVars.isRecording
 import cn.quickits.aoide.util.L
 
 
@@ -15,6 +14,8 @@ class AudioRecorder : Recorder {
 
     private var audioRecord: AudioRecord? = null
 
+    private var mIsRecording = false
+
     override fun startAudioRecord() {
         startAudioRecord(
             DEFAULT_SOURCE,
@@ -25,7 +26,7 @@ class AudioRecorder : Recorder {
     }
 
     private fun startAudioRecord(audioSource: Int, sampleRateInHz: Int, channelConfig: Int, audioFormat: Int) {
-        if (isRecording) return
+        if (mIsRecording) return
 
         val bufferSize = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat)
 
@@ -45,13 +46,13 @@ class AudioRecorder : Recorder {
 
         audioRecord.startRecording()
 
-        isRecording = true
+        mIsRecording = true
 
         listener?.onStartRecord()
     }
 
     override fun stopAudioRecord() {
-        if (!isRecording) return
+        if (!mIsRecording) return
 
         val audioRecord = this.audioRecord ?: return
 
@@ -61,10 +62,12 @@ class AudioRecorder : Recorder {
 
         audioRecord.release()
 
-        isRecording = false
+        mIsRecording = false
 
         listener?.onStopRecord()
     }
+
+    override fun isRecording(): Boolean = mIsRecording
 
     override fun readBuffer(): PCMData? {
         val audioRecord = this.audioRecord ?: return null

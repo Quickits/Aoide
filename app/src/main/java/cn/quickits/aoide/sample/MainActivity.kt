@@ -1,7 +1,7 @@
 package cn.quickits.aoide.sample
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import cn.quickits.aoide.Aoide
 import cn.quickits.aoide.core.*
 import cn.quickits.aoide.util.L

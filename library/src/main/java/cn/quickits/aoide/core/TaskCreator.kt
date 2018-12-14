@@ -2,7 +2,6 @@ package cn.quickits.aoide.core
 
 import android.content.Context
 import cn.quickits.aoide.converter.AudioFormatConverter
-import cn.quickits.aoide.util.AHRTException
 import io.reactivex.Flowable
 
 class TaskCreator(context: Context, encoder: AudioFormatConverter) {
@@ -14,8 +13,7 @@ class TaskCreator(context: Context, encoder: AudioFormatConverter) {
     }
 
     fun create(): Flowable<Status> {
-        val task = TaskBox.getInstance().create(taskSpec) ?: return Flowable.just(Error(AHRTException()))
-        return task.getFlowable()
+        return TaskBox.getInstance().create(taskSpec)
     }
 
 }

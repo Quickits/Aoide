@@ -1,30 +1,29 @@
 package cn.quickits.aoide.core
 
+import io.reactivex.Flowable
+
 class TaskBox private constructor() {
 
-    private val box = arrayListOf<Task>()
+    private lateinit var task: Task
 
-    fun create(taskSpec: TaskSpec): Task? {
-        val current = getCurrentTask()
-
-        if (current?.isPaused == true) {
-            return current
-        } else if (current != null) {
-            return null
+    fun create(taskSpec: TaskSpec): Flowable<Status> {
+        if (::task.isInitialized) {
+            if (task.getStatus() is Prepared || task.getStatus() is Completed) {
+                task.init(taskSpec)
+            }
+        } else {
+            task = Task(taskSpec)
         }
 
-        val task = Task(taskSpec)
-
-        box.add(task)
-
-        return task
+        return task.getFlowable()
     }
 
     fun getCurrentTask(): Task? {
-        for (task in box) {
-            if (!task.isFinished) return task
+        return if (::task.isInitialized && task.getStatus() !is Completed) {
+            task
+        } else {
+            null
         }
-        return null
     }
 
     companion object {
