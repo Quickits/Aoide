@@ -5,7 +5,7 @@ import cn.quickits.aoide.converter.aac.AACFormatConverter
 import cn.quickits.aoide.converter.mp3.Mp3FormatConverter
 import cn.quickits.aoide.converter.wav.WAVFormatConverter
 
-class TaskCreatorFactory(val context: Context) {
+class TaskCreatorFactory(internal val context: Context) {
 
     fun aac() = TaskCreator(context, AACFormatConverter.create())
 

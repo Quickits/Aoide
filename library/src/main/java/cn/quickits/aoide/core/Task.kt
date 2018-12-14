@@ -54,7 +54,7 @@ class Task(taskSpec: TaskSpec) {
 
         stopRecordFlag = false
 
-        emitStatus(Prepared())
+        emitStatus(Prepared(targetFile))
     }
 
     internal fun start(): Maybe<Any> {
@@ -90,7 +90,7 @@ class Task(taskSpec: TaskSpec) {
 
             recorder.startAudioRecord()
 
-            emitStatus(Recording())
+            emitStatus(Recording(currentStatus))
         } else {
 
         }
@@ -109,7 +109,7 @@ class Task(taskSpec: TaskSpec) {
         if (recorder.isRecording()) {
             recorder.stopAudioRecord()
 
-            emitStatus(Paused())
+            emitStatus(Paused(currentStatus))
         } else {
 
         }
@@ -135,9 +135,9 @@ class Task(taskSpec: TaskSpec) {
             .subscribeOn(Schedulers.io())
             .subscribe({
             }, { e ->
-                emitStatus(Error(e))
+                emitStatus(Error(e, currentStatus))
             }, {
-                if (stopRecordFlag) emitStatus(Completed(targetFile))
+                if (stopRecordFlag) emitStatus(Completed(currentStatus))
             })
     }
 
