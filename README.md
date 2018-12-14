@@ -1,5 +1,7 @@
 # Aoide
 
+[![](https://jitpack.io/v/cn.quickits/Aoide.svg)](https://jitpack.io/#cn.quickits/Aoide)
+
 🎤 Aoide is an audio recorder for Android
 
 ## Features
@@ -7,6 +9,33 @@
 - Support pause recording
 - Multiple audio formats (MP3, AAC-ADTS, WAV)
 - API Flow Based on RxJava
+
+## Sample App
+
+|          Home             |             Recording               |               Play             |
+| :-------------------------: | :----------------------------------: | :----------------------------------: |
+| ![Images](./art/screenshots_1.png) | ![FileSystem](./art/screenshots_2.png) | ![FileSystem](./art/screenshots_3.png) |
+
+
+## Download
+
+- Add it in your root build.gradle at the end of repositories:
+
+```
+allprojects {
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+- Add the dependency 
+
+```
+dependencies {
+    implementation 'cn.quickits:Aoide:0.2.1'
+}
+```
 
 ## Usage
 
