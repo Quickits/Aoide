@@ -33,9 +33,13 @@ class RecorderService : Service() {
     }
 
     private fun startRecording() {
-        disposable = Aoide.with(this).mp3()
-            .create()
-            .observeOn(AndroidSchedulers.mainThread())
+        val aoide = when (GlobalVars.recordingFormat) {
+            GlobalVars.FORMAT_AAC -> Aoide.with(this).aac().create()
+            GlobalVars.FORMAT_WAV -> Aoide.with(this).wav().create()
+            else -> Aoide.with(this).mp3().create()
+        }
+
+        disposable = aoide.observeOn(AndroidSchedulers.mainThread())
             .subscribe { status ->
                 when (status) {
                     is Prepared -> {
@@ -67,6 +71,7 @@ class RecorderService : Service() {
                     }
                 }
             }
+
     }
 
     private fun stopRecording() {

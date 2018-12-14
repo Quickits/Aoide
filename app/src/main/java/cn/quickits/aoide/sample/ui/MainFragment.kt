@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.support.v7.widget.RecyclerView
 import android.view.View
+import android.widget.RadioGroup
 import cn.quickits.aoide.sample.R
 import cn.quickits.aoide.sample.repo.bean.RecordFile
 import cn.quickits.aoide.sample.service.RecorderService
@@ -102,6 +103,8 @@ class MainFragment : QLceViewFragment<List<RecordFile>, RecordFilesViewModel, Re
                         context?.startService(intent)
                         btn_record.isEnabled = false
                         btn_record_finish.isEnabled = true
+
+                        disableRadioGroup(radio_group)
                     }
                 }, { })
         }
@@ -111,6 +114,16 @@ class MainFragment : QLceViewFragment<List<RecordFile>, RecordFilesViewModel, Re
             context?.stopService(intent)
             btn_record.isEnabled = true
             btn_record_finish.isEnabled = false
+
+            enableRadioGroup(radio_group)
+        }
+
+        radio_group.setOnCheckedChangeListener { _, checkedId ->
+            when (checkedId) {
+                R.id.radio_aac -> GlobalVars.recordingFormat = GlobalVars.FORMAT_AAC
+                R.id.radio_mp3 -> GlobalVars.recordingFormat = GlobalVars.FORMAT_MP3
+                R.id.radio_wav -> GlobalVars.recordingFormat = GlobalVars.FORMAT_WAV
+            }
         }
     }
 
@@ -118,10 +131,18 @@ class MainFragment : QLceViewFragment<List<RecordFile>, RecordFilesViewModel, Re
         if (GlobalVars.isRecording) {
             btn_record.isEnabled = false
             btn_record_finish.isEnabled = true
+
+            disableRadioGroup(radio_group)
         } else {
             btn_record.isEnabled = true
             btn_record_finish.isEnabled = false
+
+            enableRadioGroup(radio_group)
         }
+
+        radio_mp3.isChecked = GlobalVars.recordingFormat == GlobalVars.FORMAT_MP3
+        radio_aac.isChecked = GlobalVars.recordingFormat == GlobalVars.FORMAT_AAC
+        radio_wav.isChecked = GlobalVars.recordingFormat == GlobalVars.FORMAT_WAV
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -144,6 +165,18 @@ class MainFragment : QLceViewFragment<List<RecordFile>, RecordFilesViewModel, Re
         initTime()
         if (!GlobalVars.isRecording) {
             viewModel.load(true)
+        }
+    }
+
+    private fun disableRadioGroup(testRadioGroup: RadioGroup) {
+        for (i in 0 until testRadioGroup.childCount) {
+            testRadioGroup.getChildAt(i).isEnabled = false
+        }
+    }
+
+    private fun enableRadioGroup(testRadioGroup: RadioGroup) {
+        for (i in 0 until testRadioGroup.childCount) {
+            testRadioGroup.getChildAt(i).isEnabled = true
         }
     }
 
