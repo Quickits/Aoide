@@ -123,6 +123,7 @@ class MainFragment : QLceViewFragment<List<RecordFile>, RecordFilesViewModel, Re
                 R.id.radio_aac -> GlobalVars.recordingFormat = GlobalVars.FORMAT_AAC
                 R.id.radio_mp3 -> GlobalVars.recordingFormat = GlobalVars.FORMAT_MP3
                 R.id.radio_wav -> GlobalVars.recordingFormat = GlobalVars.FORMAT_WAV
+                R.id.radio_pcm -> GlobalVars.recordingFormat = GlobalVars.FORMAT_PCM
             }
         }
     }
@@ -143,6 +144,7 @@ class MainFragment : QLceViewFragment<List<RecordFile>, RecordFilesViewModel, Re
         radio_mp3.isChecked = GlobalVars.recordingFormat == GlobalVars.FORMAT_MP3
         radio_aac.isChecked = GlobalVars.recordingFormat == GlobalVars.FORMAT_AAC
         radio_wav.isChecked = GlobalVars.recordingFormat == GlobalVars.FORMAT_WAV
+        radio_pcm.isChecked = GlobalVars.recordingFormat == GlobalVars.FORMAT_PCM
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {

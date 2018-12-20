@@ -7,6 +7,7 @@ object GlobalVars {
     const val FORMAT_MP3 = 1
     const val FORMAT_AAC = 2
     const val FORMAT_WAV = 3
+    const val FORMAT_PCM = 4
 
     var recordingFormat: Int = FORMAT_MP3
 

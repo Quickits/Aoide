@@ -36,6 +36,7 @@ class RecorderService : Service() {
         val aoide = when (GlobalVars.recordingFormat) {
             GlobalVars.FORMAT_AAC -> Aoide.with(this).aac().create()
             GlobalVars.FORMAT_WAV -> Aoide.with(this).wav().create()
+            GlobalVars.FORMAT_PCM -> Aoide.with(this).pcm().create()
             else -> Aoide.with(this).mp3().create()
         }
 

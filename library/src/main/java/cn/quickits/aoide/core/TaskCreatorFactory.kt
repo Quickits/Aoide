@@ -3,6 +3,7 @@ package cn.quickits.aoide.core
 import android.content.Context
 import cn.quickits.aoide.converter.aac.AACFormatConverter
 import cn.quickits.aoide.converter.mp3.Mp3FormatConverter
+import cn.quickits.aoide.converter.pcm.PCMFormatConverter
 import cn.quickits.aoide.converter.wav.WAVFormatConverter
 
 class TaskCreatorFactory(internal val context: Context) {
@@ -12,5 +13,7 @@ class TaskCreatorFactory(internal val context: Context) {
     fun mp3() = TaskCreator(context, Mp3FormatConverter.create())
 
     fun wav() = TaskCreator(context, WAVFormatConverter.create())
+
+    fun pcm() = TaskCreator(context, PCMFormatConverter.create())
 
 }
