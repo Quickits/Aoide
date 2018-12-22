@@ -7,15 +7,14 @@
 ## Features
 
 - Support pause recording
-- Multiple audio formats (MP3, AAC-ADTS, WAV)
+- Multiple audio formats (MP3, AAC-ADTS, WAV, PCM)
 - API Flow Based on RxJava
 
 ## Sample App
 
-|          Home             |             Recording               |               Play             |
-| :-------------------------: | :----------------------------------: | :----------------------------------: |
+|                Home                |               Recording                |                  Play                  |
+| :--------------------------------: | :------------------------------------: | :------------------------------------: |
 | ![Images](./art/screenshots_1.png) | ![FileSystem](./art/screenshots_2.png) | ![FileSystem](./art/screenshots_3.png) |
-
 
 ## Download
 
@@ -29,7 +28,7 @@ allprojects {
 }
 ```
 
-- Add the dependency 
+- Add the dependency
 
 ```
 dependencies {
@@ -41,7 +40,7 @@ dependencies {
 
 ### 0. Permission
 
-- ``android.permission.RECORD_AUDIO``
+- `android.permission.RECORD_AUDIO`
 
 If you are targeting Android 6.0+, you need to handle runtime permission request before next step.
 
@@ -55,8 +54,8 @@ Aoide.with(this).mp3()
             is Prepared -> {
                 println("Prepared")
             }
-            
-            is Recording -> {                    
+
+            is Recording -> {
                 println("Recording")
             }
 
@@ -64,7 +63,7 @@ Aoide.with(this).mp3()
                 println("Paused")
             }
 
-            is Completed -> 
+            is Completed ->
                 println("Completed: " + status.filePath)
             }
 
@@ -76,11 +75,12 @@ Aoide.with(this).mp3()
     }
 ```
 
-or other audio format 
+or other audio format
 
 ```
 Aoide.with(this).aac()
 Aoide.with(this).wav()
+Aoide.with(this).pcm()
 ```
 
 ### 2. Start recording
