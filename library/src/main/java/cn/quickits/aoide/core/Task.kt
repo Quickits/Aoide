@@ -28,6 +28,8 @@ class Task(taskSpec: TaskSpec) {
     private lateinit var currentStatus: Status
 
     private var stopRecordFlag: Boolean = false
+    private var recordedFlag: Boolean = false
+
 
     init {
         recorder.setOnRecordStateChangedListener(object : OnRecordStateChangedListener {
@@ -85,7 +87,7 @@ class Task(taskSpec: TaskSpec) {
     private fun doStartRecord() {
         if (!recorder.isRecording() && !stopRecordFlag) {
             stopRecordFlag = false
-
+            recordedFlag = true
             if (!converter.isOpen) converter.open(targetFile)
 
             recorder.startAudioRecord()
@@ -101,17 +103,17 @@ class Task(taskSpec: TaskSpec) {
             stopRecordFlag = true
             recorder.stopAudioRecord()
         } else {
-
+            if (recordedFlag) {
+                emitStatus(Completed(currentStatus))
+            }
         }
     }
 
     private fun doPauseRecord() {
         if (recorder.isRecording()) {
             recorder.stopAudioRecord()
-
             emitStatus(Paused(currentStatus))
         } else {
-
         }
     }
 
@@ -149,6 +151,7 @@ class Task(taskSpec: TaskSpec) {
     private fun closeConverter() {
         if (stopRecordFlag) {
             converter.close()
+            recordedFlag = false
             L.logi("closeConverter by stop")
         } else if (currentStatus is Paused) {
             L.logi("closeConverter by pause")
